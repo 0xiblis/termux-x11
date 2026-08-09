@@ -754,7 +754,7 @@ public class MainActivity extends AppCompatActivity {
         return pos;
     }
 
-    @SuppressLint("RtlHardcoded")
+    /*@SuppressLint("RtlHardcoded")
     private void setTerminalToolbarViewLayout() {
         handler.post(() -> {
             final ViewPager pager = getTerminalToolbarViewPager();
@@ -791,6 +791,80 @@ public class MainActivity extends AppCompatActivity {
             ekbarContentInset = prefs.adjustHeightForEK.get() && showNow ? layoutParams.height : 0;
             applyContentInsets();
         });
+    }*/
+
+    @SuppressLint("RtlHardcoded")
+    private void setTerminalToolbarViewLayout() {
+        handler.post(() -> {
+            final ViewPager pager = getTerminalToolbarViewPager();
+            boolean showNow = pager.getVisibility() == View.VISIBLE;
+            FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) pager.getLayoutParams();
+            int pos = getPagerPosition();
+            int margin = Math.round(5 * getResources().getDisplayMetrics().density);
+            int toolbarHeight = Math.round(
+                    37.5f * getResources().getDisplayMetrics().density *
+                    (TermuxX11ExtraKeys.getExtraKeysInfo() == null
+                            ? 0
+                            : TermuxX11ExtraKeys.getExtraKeysInfo().getMatrix().length)
+            );
+            switch (pos) {
+                case PAGER_POSITION_TOP:
+                case PAGER_POSITION_BOTTOM:
+                    // 5dp a izquierda y derecha.
+                    layoutParams.width = frm.getWidth() - 2 * margin;
+                    layoutParams.height = toolbarHeight;
+                    layoutParams.leftMargin = margin;
+                    layoutParams.rightMargin = margin;
+                    // applyContentInsets() controla bottomMargin.
+                    // Para TOP necesitamos 5dp arriba mediante gravity + margin.
+                    if (pos == PAGER_POSITION_TOP) {
+                        layoutParams.gravity = Gravity.TOP | Gravity.LEFT;
+                        layoutParams.topMargin = margin;
+                    } else {
+                        layoutParams.gravity = Gravity.BOTTOM | Gravity.LEFT;
+                        // No tocar bottomMargin aquí porque
+                        // applyContentInsets() lo controla.
+                        layoutParams.bottomMargin = 0;
+                        layoutParams.topMargin = 0;
+                    }
+                    pager.setPivotX(layoutParams.width / 2f);
+                    pager.setPivotY(layoutParams.height / 2f);
+                    pager.setRotation(0f);
+                    pager.setTranslationX(0);
+                    pager.setTranslationY(0);
+                    break;
+                case PAGER_POSITION_LEFT:
+                case PAGER_POSITION_RIGHT:
+                    // Después de rotar 90°, el ancho/alto visual se intercambian.
+                    layoutParams.width = frm.getHeight() - imeHeight - 2 * margin;
+                    layoutParams.height = toolbarHeight;
+                    layoutParams.topMargin = margin;
+                    layoutParams.bottomMargin = margin;
+                    if (pos == PAGER_POSITION_LEFT) {
+                        layoutParams.gravity = Gravity.LEFT | Gravity.TOP;
+                        pager.setPivotX(0);
+                        pager.setPivotY(0);
+                        pager.setRotation(90f);
+                        // Compensar la rotación.
+                        pager.setTranslationX(layoutParams.height + margin);
+                        pager.setTranslationY(0);
+                    } else {
+                        layoutParams.gravity = Gravity.RIGHT | Gravity.TOP;
+                        pager.setPivotX(layoutParams.width);
+                        pager.setPivotY(0);
+                        pager.setRotation(-90f);
+                        pager.setTranslationX(-layoutParams.height - margin);
+                        pager.setTranslationY(0);
+                    }
+                    break;
+            }
+            pager.setLayoutParams(layoutParams);
+            ekbarContentInset =
+                    prefs.adjustHeightForEK.get() && showNow
+                            ? layoutParams.height
+                            : 0;
+            applyContentInsets();
+        });
     }
 
     private int ekbarContentInset = 0;
@@ -807,7 +881,10 @@ public class MainActivity extends AppCompatActivity {
         getLorieView().setObscuredBottom(imeHeight - imeContentInset);
 
         // Only a bar at the bottom has to step aside for the keyboard.
-        int bottomMargin = pos == PAGER_POSITION_BOTTOM ? imeHeight : 0;
+        //int bottomMargin = pos == PAGER_POSITION_BOTTOM ? imeHeight : 0;
+        int baseMargin = (int) (5 * getResources().getDisplayMetrics().density);
+        int bottomMargin = baseMargin + (pos == PAGER_POSITION_BOTTOM ? imeHeight : 0);
+
         ViewPager pager = getTerminalToolbarViewPager();
         ViewGroup.MarginLayoutParams pagerParams = (ViewGroup.MarginLayoutParams) pager.getLayoutParams();
         if (pagerParams.bottomMargin != bottomMargin) {
