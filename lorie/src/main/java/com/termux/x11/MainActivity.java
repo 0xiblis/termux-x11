@@ -987,8 +987,17 @@ public class MainActivity extends AppCompatActivity {
         if (hasFocus) {
             applyImmersiveMode();
             LorieView.markUserActivity();
-            applyScreenIdleTimeout();
+            handler.removeCallbacks(screenIdleTimeoutCheck);
+            checkScreenIdleTimeout();
         }
+    }
+
+    @Override
+    public void onUserInteraction() {
+        super.onUserInteraction();
+        LorieView.markUserActivity();
+        handler.removeCallbacks(screenIdleTimeoutCheck);
+        checkScreenIdleTimeout();
     }
 
     private void applyImmersiveMode() {
@@ -1028,7 +1037,7 @@ public class MainActivity extends AppCompatActivity {
     /** Keeps or drops the screen-on flag based on elapsed idle time, rescheduling itself for the remaining time. */
     private void checkScreenIdleTimeout() {
         String mode = prefs.screenIdleTimeout.get();
-        if ("never".equals(mode) || "system".equals(mode)) {
+        if (!getLorieView().connected() || "never".equals(mode) || "system".equals(mode)) {
             screenIdleTimeoutArmedMode = null;
             return;
         }
