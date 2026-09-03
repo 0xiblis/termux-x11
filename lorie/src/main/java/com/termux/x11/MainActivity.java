@@ -810,14 +810,13 @@ public class MainActivity extends AppCompatActivity {
         handler.post(() -> {
             final ViewPager pager = getTerminalToolbarViewPager();
             boolean showNow = pager.getVisibility() == View.VISIBLE;
+            ExtraKeysInfo extraKeysInfo = mExtraKeys == null ? null : mExtraKeys.getExtraKeysInfo();
             FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) pager.getLayoutParams();
             int pos = getPagerPosition();
             int margin = Math.round(5 * getResources().getDisplayMetrics().density);
             int toolbarHeight = Math.round(
                     37.5f * getResources().getDisplayMetrics().density *
-                    (TermuxX11ExtraKeys.getExtraKeysInfo() == null
-                            ? 0
-                            : TermuxX11ExtraKeys.getExtraKeysInfo().getMatrix().length)
+                    (extraKeysInfo == null ? 0 : extraKeysInfo.getMatrix().length)
             );
             switch (pos) {
                 case PAGER_POSITION_TOP:
